@@ -2,6 +2,7 @@ from ..db.collections.files import files_collection
 from bson import ObjectId
 import os
 from pdf2image import convert_from_path
+from app.analyzers.resume_analyzer import analyze_resume
 import base64
 from groq import Groq
 from dotenv import load_dotenv
@@ -65,6 +66,43 @@ async def process_file(id: str, file_path: str):
     )
     result_text = response.choices[0].message.content
 
+async def process_resume_analysis(
+    id: str,
+    resume_path: str,
+    job_description: str,
+):
+    await files_collection.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {"status": "processing"}}
+    )
+
+    try:
+        result_text = analyze_resume(
+            resume_path=resume_path,
+            job_description=job_description,
+        )
+
+        await files_collection.update_one(
+            {"_id": ObjectId(id)},
+            {
+                "$set": {
+                    "status": "processed",
+                    "result": result_text,
+                }
+            },
+        )
+
+    except Exception as e:
+        await files_collection.update_one(
+            {"_id": ObjectId(id)},
+            {
+                "$set": {
+                    "status": "failed",
+                    "result": str(e),
+                }
+            },
+        )
+    
     # Step 4: Save result to DB
     await files_collection.update_one({"_id": ObjectId(id)}, {
         "$set": {
