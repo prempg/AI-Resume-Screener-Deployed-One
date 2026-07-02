@@ -1,15 +1,12 @@
-import os
-from dotenv import load_dotenv
 from groq import Groq
+from app.config import settings
 
-load_dotenv()
-
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = Groq(api_key=settings.GROQ_API_KEY)
 
 
 def generate_text_response(prompt: str) -> str:
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=settings.GROQ_TEXT_MODEL,
         messages=[
             {
                 "role": "user",

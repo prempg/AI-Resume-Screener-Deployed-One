@@ -8,6 +8,8 @@ class FileSchema(TypedDict):
     name: str = Field(..., description="Name of the file")
     status: str = Field(..., description="Status of the file")
     result: Optional[str] = Field(None, description="The result from AI")
+    job_description: Optional[str] = Field(None, description="The job description")
+    file_type: Optional[str] = Field(None, description="The type of the file")
 
 
 COLLECTION_NAME = "files"
