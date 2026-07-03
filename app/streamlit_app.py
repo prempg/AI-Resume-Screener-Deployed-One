@@ -1,8 +1,9 @@
+import os
 import time
 import requests
 import streamlit as st
 
-FASTAPI_URL = "http://localhost:8000"
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
 st.set_page_config(
     page_title="AI Resume Analyzer",
