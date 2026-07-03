@@ -85,3 +85,62 @@ def analyze_resume(
     )
 
     return format_ats_evaluation(evaluation) + "\n\n---\n\n" + llm_result
+def analyze_resume_with_metadata(
+    resume_path: str,
+    job_description: str,
+) -> dict:
+    resume_text = extract_text_from_pdf(resume_path)
+    used_vision_fallback = False
+
+    if not resume_text:
+        used_vision_fallback = True
+
+        image_output_dir = f"{settings.UPLOAD_DIR}/images"
+        image_paths = pdf_to_images(
+            file_path=resume_path,
+            output_dir=image_output_dir,
+        )
+
+        extraction_prompt = build_resume_text_extraction_prompt()
+
+        resume_text = extract_text_from_images(
+            prompt=extraction_prompt,
+            image_paths=image_paths[:2],
+        )
+
+        analysis_prompt = build_resume_analysis_prompt(
+            resume_text=resume_text,
+            job_description=job_description,
+        )
+
+        llm_result = generate_vision_response(
+            prompt=analysis_prompt,
+            image_paths=image_paths[:2],
+        )
+    else:
+        analysis_prompt = build_resume_analysis_prompt(
+            resume_text=resume_text,
+            job_description=job_description,
+        )
+
+        llm_result = generate_text_response(analysis_prompt)
+
+    evaluation = calculate_ats_score(
+        resume_text=resume_text,
+        job_description=job_description,
+    )
+
+    final_report = (
+        format_ats_evaluation(evaluation)
+        + "\n\n---\n\n"
+        + llm_result
+    )
+
+    return {
+        "report": final_report,
+        "ats_score": evaluation["ats_score"],
+        "matched_skills": evaluation["skill_match"]["matched_skills"],
+        "missing_skills": evaluation["skill_match"]["missing_skills"],
+        "required_skills": evaluation["skill_match"]["required_skills"],
+        "used_vision_fallback": used_vision_fallback,
+    }

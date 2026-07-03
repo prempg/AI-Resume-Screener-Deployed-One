@@ -88,4 +88,9 @@ async def get_resume_analysis_result(
         "file_type": db_file.get("file_type"),
         "job_description": db_file.get("job_description"),
         "result": db_file.get("result"),
+        "ats_score": db_file.get("ats_score"),
+        "matched_skills": db_file.get("matched_skills"),
+        "missing_skills": db_file.get("missing_skills"),
+        "required_skills": db_file.get("required_skills"),
+        "used_vision_fallback": db_file.get("used_vision_fallback"),
     }
