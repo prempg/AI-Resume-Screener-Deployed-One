@@ -11,24 +11,42 @@ st.set_page_config(
 )
 
 st.title("📄 AI Resume Analyzer")
-st.write("Upload your resume PDF and paste the job description.")
+st.write("Upload your resume PDF and provide the job description.")
 
 resume_pdf = st.file_uploader(
     "Upload Resume PDF",
     type=["pdf"],
 )
 
-job_description_text = st.text_area(
-    "Paste Job Description",
-    height=250,
-    placeholder="Paste the job description here...",
+st.subheader("Job Description")
+
+jd_input_mode = st.radio(
+    "Choose JD input method",
+    ["Paste JD Text", "Upload JD PDF"],
 )
+
+job_description_text = None
+jd_pdf = None
+
+if jd_input_mode == "Paste JD Text":
+    job_description_text = st.text_area(
+        "Paste Job Description",
+        height=250,
+        placeholder="Paste the job description here...",
+    )
+else:
+    jd_pdf = st.file_uploader(
+        "Upload JD PDF",
+        type=["pdf"],
+    )
 
 if st.button("Analyze Resume"):
     if resume_pdf is None:
         st.error("Please upload your resume PDF.")
-    elif not job_description_text.strip():
+    elif jd_input_mode == "Paste JD Text" and not job_description_text.strip():
         st.error("Please paste the job description.")
+    elif jd_input_mode == "Upload JD PDF" and jd_pdf is None:
+        st.error("Please upload JD PDF.")
     else:
         with st.spinner("Uploading resume..."):
             files = {
@@ -39,9 +57,16 @@ if st.button("Analyze Resume"):
                 )
             }
 
-            data = {
-                "job_description_text": job_description_text
-            }
+            data = {}
+
+            if jd_input_mode == "Paste JD Text":
+                data["job_description_text"] = job_description_text
+            else:
+                files["jd_pdf"] = (
+                    jd_pdf.name,
+                    jd_pdf.getvalue(),
+                    "application/pdf",
+                )
 
             response = requests.post(
                 f"{FASTAPI_URL}/resume/analyze",

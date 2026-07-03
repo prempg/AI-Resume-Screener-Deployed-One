@@ -4,8 +4,8 @@ from bson import ObjectId
 from app.utils.file import save_to_disk
 from app.utils.pdf import extract_jd_text
 from app.db.collections.files import files_collection
-from app.queue.q import q
-from app.queue.workers import process_resume_analysis
+from app.job_queue.q import q
+from app.job_queue.workers import process_resume_analysis
 
 router = APIRouter(
     prefix="/resume",
