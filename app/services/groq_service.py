@@ -56,3 +56,11 @@ def generate_vision_response(
 
     return response.choices[0].message.content
 
+def extract_text_from_images(
+    prompt: str,
+    image_paths: list[str],
+) -> str:
+    return generate_vision_response(
+        prompt=prompt,
+        image_paths=image_paths,
+    )

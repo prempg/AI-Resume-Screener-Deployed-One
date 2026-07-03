@@ -1,9 +1,13 @@
 from app.config import settings
 from app.utils.pdf import extract_text_from_pdf, pdf_to_images
-from app.prompts.resume_prompt import build_resume_analysis_prompt
+from app.prompts.resume_prompt import (
+    build_resume_analysis_prompt,
+    build_resume_text_extraction_prompt,
+)
 from app.services.groq_service import (
     generate_text_response,
     generate_vision_response,
+    extract_text_from_images,
 )
 from app.evaluators.ats_evaluator import calculate_ats_score
 
@@ -52,18 +56,32 @@ def analyze_resume(
 
         return format_ats_evaluation(evaluation) + "\n\n---\n\n" + llm_result
 
-    prompt = build_resume_analysis_prompt(
-        resume_text="Resume text not extracted. Analyze resume from attached images.",
-        job_description=job_description,
-    )
-
     image_output_dir = f"{settings.UPLOAD_DIR}/images"
     image_paths = pdf_to_images(
         file_path=resume_path,
         output_dir=image_output_dir,
     )
 
-    return generate_vision_response(
-        prompt=prompt,
+    extraction_prompt = build_resume_text_extraction_prompt()
+
+    extracted_resume_text = extract_text_from_images(
+        prompt=extraction_prompt,
         image_paths=image_paths[:2],
     )
+
+    evaluation = calculate_ats_score(
+        resume_text=extracted_resume_text,
+        job_description=job_description,
+    )
+
+    analysis_prompt = build_resume_analysis_prompt(
+        resume_text=extracted_resume_text,
+        job_description=job_description,
+    )
+
+    llm_result = generate_vision_response(
+        prompt=analysis_prompt,
+        image_paths=image_paths[:2],
+    )
+
+    return format_ats_evaluation(evaluation) + "\n\n---\n\n" + llm_result

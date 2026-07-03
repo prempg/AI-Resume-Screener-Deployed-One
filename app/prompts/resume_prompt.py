@@ -40,3 +40,14 @@ Give clear next steps.
 
 Keep it honest, helpful, and beginner-friendly.
 """
+def build_resume_text_extraction_prompt() -> str:
+    return """
+Extract all readable text from this resume image.
+
+Rules:
+- Return only the extracted resume text.
+- Do not analyze the resume.
+- Do not add suggestions.
+- Preserve sections like Education, Skills, Projects, Experience.
+- If some text is unclear, write [unclear].
+"""
