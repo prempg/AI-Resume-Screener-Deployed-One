@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, Form
-from fastapi import Path
+from fastapi import APIRouter, UploadFile, Form, Path
 from bson import ObjectId
+
 from app.utils.file import save_to_disk
+from app.utils.pdf import extract_jd_text
 from app.db.collections.files import files_collection
 from app.queue.q import q
 from app.queue.workers import process_resume_analysis
@@ -15,14 +16,29 @@ router = APIRouter(
 @router.post("/analyze")
 async def analyze_resume_api(
     resume_pdf: UploadFile,
-    job_description_text: str = Form(...),
+    job_description_text: str | None = Form(None),
+    jd_pdf: UploadFile | None = None,
 ):
+    jd_pdf_path = None
+
+    if jd_pdf:
+        jd_pdf_path = f"/mnt/uploads/jd/{jd_pdf.filename}"
+        await save_to_disk(
+            file=await jd_pdf.read(),
+            path=jd_pdf_path,
+        )
+
+    final_job_description = extract_jd_text(
+        jd_text=job_description_text,
+        jd_pdf_path=jd_pdf_path,
+    )
+
     db_file = await files_collection.insert_one(
         {
             "name": resume_pdf.filename,
             "status": "saving",
             "result": None,
-            "job_description": job_description_text,
+            "job_description": final_job_description,
             "file_type": "resume_analysis",
         }
     )
@@ -38,7 +54,7 @@ async def analyze_resume_api(
         process_resume_analysis,
         str(db_file.inserted_id),
         file_path,
-        job_description_text,
+        final_job_description,
     )
 
     await files_collection.update_one(
@@ -50,6 +66,7 @@ async def analyze_resume_api(
         "file_id": str(db_file.inserted_id),
         "status": "queued",
     }
+
 
 @router.get("/{file_id}")
 async def get_resume_analysis_result(

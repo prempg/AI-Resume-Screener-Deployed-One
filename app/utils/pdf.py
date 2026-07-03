@@ -34,3 +34,25 @@ def pdf_to_images(file_path: str, output_dir: str) -> list[str]:
         images.append(image_path)
 
     return images
+
+def extract_jd_text(
+    jd_text: str | None = None,
+    jd_pdf_path: str | None = None,
+) -> str:
+    if jd_text and jd_text.strip():
+        return jd_text.strip()
+
+    if jd_pdf_path:
+        extracted_text = extract_text_from_pdf(jd_pdf_path)
+
+        if extracted_text:
+            return extracted_text
+
+        raise ValueError(
+            "Could not extract text from JD PDF. "
+            "Please paste the Job Description as text."
+        )
+
+    raise ValueError(
+        "Please provide either JD text or JD PDF."
+    )
