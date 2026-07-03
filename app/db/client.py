@@ -1,4 +1,5 @@
 from pymongo import AsyncMongoClient
+from app.config import settings
 
-mongo_client: AsyncMongoClient = AsyncMongoClient(
-    "mongodb://admin:admin@mongo:27017")
+mongo_client: AsyncMongoClient = AsyncMongoClient(settings.MONGO_URI)
+
