@@ -34,3 +34,4 @@ pdf2image
 pymupdf
 streamlit
 requests
+reportlab

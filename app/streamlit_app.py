@@ -2,6 +2,10 @@ import os
 import time
 import requests
 import streamlit as st
+from app.utils.report_generator import (
+    generate_analysis_json,
+    generate_analysis_pdf,
+)
 
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
@@ -98,7 +102,35 @@ if st.button("Analyze Resume"):
                 status_placeholder.info(f"Status: {status}")
 
                 if status == "processed":
-                    result_placeholder.markdown(result_data.get("result"))
+                    result_placeholder.markdown(
+                        result_data.get("result", "No result available.")
+                    )
+
+                    st.subheader("Download Analysis Report")
+
+                    pdf_report = generate_analysis_pdf(result_data)
+                    json_report = generate_analysis_json(result_data)
+
+                    safe_name = (
+                        result_data.get("name", "resume")
+                        .replace(".pdf", "")
+                        .replace(" ", "_")
+                    )
+
+                    st.download_button(
+                        label="Download PDF Report",
+                        data=pdf_report,
+                        file_name=f"{safe_name}_analysis_report.pdf",
+                        mime="application/pdf",
+                    )
+
+                    st.download_button(
+                        label="Download JSON Report",
+                        data=json_report,
+                        file_name=f"{safe_name}_analysis_report.json",
+                        mime="application/json",
+                    )
+
                     break
 
                 if status == "failed":
