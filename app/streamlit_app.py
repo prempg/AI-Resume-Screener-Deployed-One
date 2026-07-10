@@ -2,7 +2,7 @@ import os
 import time
 import requests
 import streamlit as st
-from app.utils.report_generator import (
+from utils.report_generator import (
     generate_analysis_json,
     generate_analysis_pdf,
 )
