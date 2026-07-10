@@ -16,17 +16,6 @@ def generate_text_response(prompt: str) -> str:
         ],
     )
 
-    return response.choices[0].message.content or ""def generate_text_response(prompt: str) -> str:
-    response = client.chat.completions.create(
-        model=settings.GROQ_TEXT_MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-    )
-
     return response.choices[0].message.content or ""
     
 def encode_image_to_base64(image_path: str) -> str:
