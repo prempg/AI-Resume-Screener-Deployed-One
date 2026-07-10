@@ -1,17 +1,12 @@
 name: CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
+  push:
+    branches:
+      - resume-analyzer-v2
 
 jobs:
   deploy:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'resume-analyzer-v2'
-
     runs-on: ubuntu-latest
 
     steps:
@@ -39,11 +34,7 @@ jobs:
             git checkout resume-analyzer-v2
             git pull --ff-only origin resume-analyzer-v2
 
-            docker compose -f docker-compose.prod.yaml down
-
-            docker compose -f docker-compose.prod.yaml up \
-              --build \
-              -d
+            docker compose -f docker-compose.prod.yaml up --build -d
 
             docker compose -f docker-compose.prod.yaml ps
           EOF
